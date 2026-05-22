@@ -1,4 +1,4 @@
-"""
+﻿"""
 Offline evaluation framework for the stock recommendation system.
 
 The autoencoder + cosine similarity has NO built-in quality guarantee.
@@ -8,10 +8,10 @@ Core question: given a seed stock, do the top-K recommendations have
 higher forward-looking return correlation than a random baseline?
 
 Evaluation metrics:
-  1. Precision@K    — fraction of top-K recs with return correlation > threshold
-  2. NDCG@K         — ranked quality (highly similar stocks ranked higher = better)
-  3. Correlation lift — mean correlation of top-K vs mean correlation of random K
-  4. Sector hit rate — what fraction of recs are in the same sector (sanity check)
+  1. Precision@K     -  fraction of top-K recs with return correlation > threshold
+  2. NDCG@K          -  ranked quality (highly similar stocks ranked higher = better)
+  3. Correlation lift  -  mean correlation of top-K vs mean correlation of random K
+  4. Sector hit rate  -  what fraction of recs are in the same sector (sanity check)
 """
 
 from __future__ import annotations

@@ -1,7 +1,7 @@
-"""
+﻿"""
 Integration tests for the FastAPI recommendation service.
 
-Uses TestClient (sync) — no live server needed.
+Uses TestClient (sync)  -  no live server needed.
 Models are mocked so tests run without trained artifacts.
 """
 
@@ -47,7 +47,7 @@ def _mock_ticker_index():
 def client():
     from src.api.app import app, _state
 
-    # Inject mock state directly — bypass the lifespan loader
+    # Inject mock state directly  -  bypass the lifespan loader
     _state["price_model"] = _mock_price_model()
     _state["similarity_matrix"] = _mock_similarity_matrix()
     _state["ticker_index"] = _mock_ticker_index()

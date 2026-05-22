@@ -1,11 +1,11 @@
-# Stock Recommendation System: End-to-End ML Platform for Equity Discovery
+﻿# Stock Recommendation System: End-to-End ML Platform for Equity Discovery
 
 ---
 
 ## Case Study
 
 ### Introduction
-Individual investors face a fundamental information asymmetry: institutional desks run quantitative strategies across thousands of stocks simultaneously, while retail investors rely on intuition, news feeds, and basic screeners. This project closes that gap by building a **full-stack, data-driven stock recommendation engine** — combining price prediction, market sentiment analysis, and deep learning similarity search — then deploying it as an interactive web application anyone can use.
+Individual investors face a fundamental information asymmetry: institutional desks run quantitative strategies across thousands of stocks simultaneously, while retail investors rely on intuition, news feeds, and basic screeners. This project closes that gap by building a **full-stack, data-driven stock recommendation engine**  -  combining price prediction, market sentiment analysis, and deep learning similarity search  -  then deploying it as an interactive web application anyone can use.
 
 ### Problem
 Three problems needed to be solved in sequence:
@@ -14,12 +14,12 @@ Three problems needed to be solved in sequence:
 
 2. **Prediction:** Stock prices are non-stationary, noisy, and notoriously difficult to forecast. A model that simply follows the trend will look accurate on paper but be useless in practice. We needed a framework that distinguishes signal from noise.
 
-3. **Discovery:** Even with a good price predictor, investors don't just want to know if Stock A will go up — they want to know: "What other stocks behave like Stock A?" That requires similarity search in a high-dimensional feature space, not price correlation.
+3. **Discovery:** Even with a good price predictor, investors don't just want to know if Stock A will go up  -  they want to know: "What other stocks behave like Stock A?" That requires similarity search in a high-dimensional feature space, not price correlation.
 
 ### Solution
 A three-phase pipeline from raw data to deployed application:
 
-**Phase 1 — Data Acquisition & Feature Engineering at Scale**
+**Phase 1  -  Data Acquisition & Feature Engineering at Scale**
 - Ingested ~10M OHLCV records across 3,600+ tickers (1999–2017) using **PySpark** for distributed processing
 - Merged with NASDAQ ticker metadata (sector, industry, market cap, IPO year, country)
 - Engineered **20+ technical indicators** across four categories:
@@ -30,13 +30,13 @@ A three-phase pipeline from raw data to deployed application:
 - Applied **PCA** to compress 20+ indicators into **5 principal components** (386K final modeling records)
 - 70/15/15 train / validation / test split: 269K / 58K / 58K samples
 
-**Phase 2 — Stock Price Prediction & Sentiment Analysis**
+**Phase 2  -  Stock Price Prediction & Sentiment Analysis**
 - Tested stationarity on all time series using Augmented Dickey-Fuller test; applied differencing where required
 - Evaluated ARIMA (auto-tuned via `pmdarima`), Random Forest, SVR (RBF kernel), LinearSVR, XGBoost
 - Performed GridSearchCV hyperparameter tuning on LinearSVR
 - Integrated financial news sentiment using **DistilRoBERTa** fine-tuned on financial sentiment (`mrm8488/distilroberta-finetuned-financial-news-sentiment-analysis`)
 
-**Phase 3 — Content-Based Recommendation Engine & Deployment**
+**Phase 3  -  Content-Based Recommendation Engine & Deployment**
 - Built a **Deep Learning Autoencoder** (TensorFlow/Keras) to compress multi-dimensional stock feature vectors into a low-dimensional latent representation
 - Applied **cosine similarity** on encoded stock vectors to identify structurally similar equities
 - Deployed the full system as a **Streamlit web application**: users input a ticker and receive ranked similar stock recommendations with supporting news sentiment
@@ -78,8 +78,8 @@ Best params (GridSearchCV): `C=0.01, epsilon=0.01, loss=squared_epsilon_insensit
 ```
 Data Sources
 ├── NASDAQ Ticker Metadata (3,610 tickers: sector, industry, market cap, country)
-├── Historical OHLCV Prices — Kaggle (10M+ records, 1999–2017)
-└── Financial News Headlines — Kaggle (raw_partner_headlines.csv)
+├── Historical OHLCV Prices  -  Kaggle (10M+ records, 1999–2017)
+└── Financial News Headlines  -  Kaggle (raw_partner_headlines.csv)
          │
          ▼ (PySpark ingestion + merge)
 Merged Dataset (9.9M rows × 17 columns)
@@ -107,15 +107,15 @@ Prediction              Engine
 
 ## Key Insights & Analytics
 
-1. **LinearSVR (tuned) achieves R² = 0.997** on the test set — explaining 99.7% of variance in next-day closing price when using PCA-compressed technical indicators as features. The key insight: PCA denoising is what makes the prediction tractable; raw indicators with multicollinearity yield much weaker models.
+1. **LinearSVR (tuned) achieves R² = 0.997** on the test set  -  explaining 99.7% of variance in next-day closing price when using PCA-compressed technical indicators as features. The key insight: PCA denoising is what makes the prediction tractable; raw indicators with multicollinearity yield much weaker models.
 
-2. **Technology and Telecommunications sectors dominate by trading volume** (median 5.4M and 6.8M shares/day). Finance has the highest number of tickers but median volume of only 106K — most financial stocks are thinly traded.
+2. **Technology and Telecommunications sectors dominate by trading volume** (median 5.4M and 6.8M shares/day). Finance has the highest number of tickers but median volume of only 106K  -  most financial stocks are thinly traded.
 
-3. **The top 5 highest-priced stocks** (NVR, Seaboard, AutoZone, Texas Pacific Land, Chipotle) show sustained multi-decade price appreciation uncorrelated with sector peers — a useful signal for identifying structural outperformers vs. cyclical stocks.
+3. **The top 5 highest-priced stocks** (NVR, Seaboard, AutoZone, Texas Pacific Land, Chipotle) show sustained multi-decade price appreciation uncorrelated with sector peers  -  a useful signal for identifying structural outperformers vs. cyclical stocks.
 
-4. **IPO Year nullability (5.8M missing values)** correlates with pre-1990 listings and OTC-converted stocks — not random noise. Filling with "Other" preserves 2.5M legitimate records that would otherwise be dropped.
+4. **IPO Year nullability (5.8M missing values)** correlates with pre-1990 listings and OTC-converted stocks  -  not random noise. Filling with "Other" preserves 2.5M legitimate records that would otherwise be dropped.
 
-5. **MAPE of 13.1% is the honest accuracy.** R² near 1.0 can reflect scale effects in stock price data. MAPE of 13.1% means the model is off by ~$1.14 per dollar of price on average — useful for trend direction but not precise enough for high-frequency trading signals.
+5. **MAPE of 13.1% is the honest accuracy.** R² near 1.0 can reflect scale effects in stock price data. MAPE of 13.1% means the model is off by ~$1.14 per dollar of price on average  -  useful for trend direction but not precise enough for high-frequency trading signals.
 
 ---
 
@@ -162,6 +162,6 @@ streamlit run Streamlit/app.py
 | MAPE of 13.1% limits trading use | Add order book microstructure features and macroeconomic signals (yield curve, VIX) |
 | Autoencoder trained on static dataset | Retrain on rolling window for concept drift; add contrastive learning for better latent separation |
 | No backtesting framework | Integrate Backtrader or Zipline to evaluate actual portfolio returns from recommendations |
-| Hardcoded absolute local paths in notebooks | Refactor to relative paths with a `config.py` — blocks reproducibility for any new user |
+| Hardcoded absolute local paths in notebooks | Refactor to relative paths with a `config.py`  -  blocks reproducibility for any new user |
 | Single-stock recommendation only | Extend to portfolio-level recommendation: given a portfolio, suggest diversifying additions |
 | No confidence interval on predictions | Add prediction intervals via quantile regression or conformal prediction |

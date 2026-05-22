@@ -1,4 +1,4 @@
-"""
+﻿"""
 Correct time-series cross-validation for stock price prediction.
 
 The standard train/test split is INVALID for time-series:
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def mean_absolute_percentage_error(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """MAPE — the honest accuracy metric for price prediction."""
+    """MAPE  -  the honest accuracy metric for price prediction."""
     mask = y_true != 0
     return np.mean(np.abs((y_true[mask] - y_pred[mask]) / y_true[mask])) * 100
 
@@ -108,7 +108,7 @@ def walk_forward_validate(
 
 
 def build_linear_svr_pipeline() -> Pipeline:
-    """LinearSVR with proper scaling — the best-performing model from Phase 2."""
+    """LinearSVR with proper scaling  -  the best-performing model from Phase 2."""
     return Pipeline([
         ("scaler", StandardScaler()),
         ("model", LinearSVR(

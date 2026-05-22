@@ -1,4 +1,4 @@
-"""
+﻿"""
 FastAPI production service for the Stock Recommendation System.
 
 Endpoints:
@@ -60,7 +60,7 @@ def _load_price_model():
     path = MODELS_DIR / "linear_svr_price_model.joblib"
     if path.exists():
         return joblib.load(path)
-    logger.warning("Price model not found at %s — prediction endpoint unavailable", path)
+    logger.warning("Price model not found at %s  -  prediction endpoint unavailable", path)
     return None
 
 
@@ -68,7 +68,7 @@ def _load_similarity_matrix() -> Optional[pd.DataFrame]:
     path = PROCESSED_DIR / "similarity_matrix.parquet"
     if path.exists():
         return pd.read_parquet(path)
-    logger.warning("Similarity matrix not found — recommend endpoint unavailable")
+    logger.warning("Similarity matrix not found  -  recommend endpoint unavailable")
     return None
 
 
