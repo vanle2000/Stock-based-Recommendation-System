@@ -1,6 +1,4 @@
 ﻿"""
-Offline evaluation framework for the stock recommendation system.
-
 The autoencoder + cosine similarity has NO built-in quality guarantee.
 These functions define what "a good recommendation" means and measure it.
 
@@ -84,7 +82,6 @@ def precision_at_k(
 ) -> float:
     """
     Precision@K: fraction of top-K model recommendations that are "truly similar"
-    (i.e., have forward return correlation above threshold with the seed stock).
 
     Parameters
     ----------
