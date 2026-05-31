@@ -1,15 +1,3 @@
-﻿"""
-Correct time-series cross-validation for stock price prediction.
-
-The standard train/test split is INVALID for time-series:
-- It allows future data to leak into training
-- It overstates R² (often near 1.0) because the model sees tomorrow's price
-  reflected in today's technical indicators computed on overlapping windows
-
-This module implements walk-forward (rolling-window) validation, which is
-the correct methodology for any sequential financial data.
-"""
-
 import logging
 import numpy as np
 import pandas as pd
