@@ -5,7 +5,7 @@
 ## Case Study
 
 ### Introduction
-Individual investors face a fundamental information asymmetry: institutional desks run quantitative strategies across thousands of stocks simultaneously, while retail investors rely on intuition, news feeds, and basic screeners. This project closes that gap by building a **full-stack, data-driven stock recommendation engine**  -  combining price prediction, market sentiment analysis, and deep learning similarity search  -  then deploying it as an interactive web application anyone can use.
+Individual investors face a fundamental information asymmetry: institutional desks run quantitative strategies across thousands of stocks simultaneously, while retail investors rely on intuition, news feeds, and basic screeners. This project closes that gap by building a **full-stack, data-driven stock recommendation engine**  which  combining price prediction, market sentiment analysis, and deep learning similarity search and then deploying it as an interactive web application anyone can use.
 
 ### Problem
 Three problems needed to be solved in sequence:
