@@ -168,14 +168,14 @@ class TestNDCGAtK:
         """A random similarity matrix should score lower NDCG than the perfect one."""
         n = len(tickers)
         rng = np.random.default_rng(99)
-        random_sim = pd.DataFrame(
-            rng.uniform(0, 1, (n, n)), index=tickers, columns=tickers
-        )
-        np.fill_diagonal(random_sim.values, 0)
+        random_data = rng.uniform(0, 1, (n, n))
+        np.fill_diagonal(random_data, 0)  # fill on the writable ndarray, not df.values
+        random_sim = pd.DataFrame(random_data, index=tickers, columns=tickers)
 
         # Build a perfect similarity matrix
-        perfect = pd.DataFrame(0.1, index=tickers, columns=tickers)
-        np.fill_diagonal(perfect.values, 0)
+        perfect_data = np.full((n, n), 0.1)
+        np.fill_diagonal(perfect_data, 0)
+        perfect = pd.DataFrame(perfect_data, index=tickers, columns=tickers)
         for i in range(1, 6):
             perfect.iloc[0, i] = 0.9
             perfect.iloc[i, 0] = 0.9
