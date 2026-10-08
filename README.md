@@ -12,7 +12,7 @@ Three problems needed to be solved in sequence:
 
 1. **Scale:** Historical stock data for 3,600+ NASDAQ companies spans 10M+ records. Standard Pandas workflows break. The data pipeline had to work at a scale most ML projects never touch.
 
-2. **Prediction:** Stock prices are non-stationary, noisy, and notoriously difficult to forecast. A model that simply follows the trend will look accurate on paper but be useless in practice. We needed a framework that distinguishes signal from noise.
+2. **Prediction (and its limits):** Stock prices are non-stationary and noisy. A model evaluated on the price *level* can look near-perfect while having learned nothing — a trap this project fell into and then corrected (see [the correction](#the-price-prediction-correction)). The honest framework evaluates on *returns* against a persistence baseline, which exposes that daily prediction from technical indicators alone is a coin flip.
 
 3. **Discovery:** Even with a good price predictor, investors don't just want to know if Stock A will go up  -  they want to know: "What other stocks behave like Stock A?" That requires similarity search in a high-dimensional feature space, not price correlation.
 
@@ -43,16 +43,74 @@ A three-phase pipeline from raw data to deployed application:
 
 ### Results
 
-| Component | Model | Metric | Value |
-|-----------|-------|--------|-------|
-| Price prediction | LinearSVR (tuned) | R² | **0.997** |
-| Price prediction | LinearSVR (tuned) | RMSE | **7.30** |
-| Price prediction | LinearSVR (tuned) | MAE | **1.14** |
-| Price prediction | LinearSVR (tuned) | MAPE | **13.1%** |
-| Recommendation engine | Autoencoder + cosine similarity | Architecture | 5-dim latent space |
-| Deployment | Streamlit | Status | Deployed |
+> **Correction (what I got wrong, and the fix).** An earlier version of this
+> README headlined **R² = 0.997** for "next-day price prediction." That number
+> is a measurement artefact, not a result, and the honest correction is the
+> most useful part of this project. The detail is in
+> [The price-prediction correction](#the-price-prediction-correction) below;
+> the short version is that predicting the price *level* lets the previous
+> close score ~0.997 on its own, so the model learned nothing you did not
+> already know. Re-run on the correct target — next-day **return** — the signal
+> collapses to a coin flip, which is the expected and correct answer for daily
+> equity prediction without microstructure data.
 
-Best params (GridSearchCV): `C=0.01, epsilon=0.01, loss=squared_epsilon_insensitive`
+| Component | What is actually claimed | Honest metric | Value |
+|-----------|--------------------------|---------------|-------|
+| Price "prediction" (level) | **Artefact — do not use.** Trivial baseline "tomorrow = today" alone | R² | **0.997** |
+| Price prediction (return) | LinearSVR on lagged-return features, walk-forward | out-of-sample R² | **−0.01** (worse than predicting zero) |
+| Price prediction (return) | same | directional accuracy | **51.2%** (coin flip = 50%) |
+| Price prediction (return) | same | information coefficient | **+0.056** |
+| Recommendation engine | Autoencoder + cosine similarity | latent space | 5-dim |
+| Deployment | Streamlit | status | deployed |
+
+Reproduce every number above with `python -m src.models.returns_prediction`
+([`src/models/returns_prediction.py`](src/models/returns_prediction.py), locked
+in by [`tests/test_returns_prediction.py`](tests/test_returns_prediction.py)).
+
+**The deliverable is the recommendation engine, not the price model.** The
+value of this project is structural similarity discovery (autoencoder latent
+space + cosine similarity), which does not depend on forecasting price at all.
+
+---
+
+## The price-prediction correction
+
+**What the old number was.** Regressing next-day *price* (`Close_t+1`) on
+features derived from the current day scores R² ≈ 0.997. The reason is trivial:
+adjacent daily closes correlate at **0.999**, so the single rule "tomorrow =
+today" already scores R² = 0.997 by itself. The model added nothing — it was
+being graded on information it was handed for free.
+
+```
+=== The artefact: predicting price LEVELS ===
+Adjacent-close correlation : 0.9987
+R2 of 'tomorrow = today'   : 0.9973     <- this is the "0.997", with no model at all
+```
+
+**The honest target is the return**, `r_t+1 = Close_t+1 / Close_t − 1`, which
+removes the free information. Evaluated walk-forward (expanding window, 1-day
+gap to prevent indicator leakage) against two baselines a reviewer expects —
+"no change" (r̂ = 0) and persistence (r̂ = r_t):
+
+| model | OOS R² (model) | OOS R² (naive r=0) | directional acc. | info. coef. |
+|---|---|---|---|---|
+| LinearSVR | **−0.010** | −0.003 | **51.2%** | +0.056 |
+| Ridge | −0.008 | −0.003 | 50.3% | +0.042 |
+
+The model's out-of-sample R² is **negative** — worse than predicting zero — and
+directional accuracy sits on the coin flip. **This is the correct answer.**
+Daily equity returns are not predictable from lagged technical indicators
+alone; the earlier 0.997 only hid that behind a level-scale artefact.
+
+Reproducible: `python -m src.models.returns_prediction`. The numbers above are
+generated on a seeded geometric-Brownian-motion series specifically so the
+*artefact* (level R² ≈ 1.0) and its *removal* (return R² ≈ 0) can be
+regenerated by anyone without the 10M-row Kaggle download, and are asserted in
+the test suite.
+
+**Lesson that generalises:** always evaluate a forecaster on the differenced /
+return target, always include a persistence baseline, and distrust any
+level-R² near 1.0 on a near-random-walk series.
 
 ---
 
@@ -107,7 +165,13 @@ Prediction              Engine
 
 ## Key Insights & Analytics
 
-1. **LinearSVR (tuned) achieves R² = 0.997** on the test set  -  explaining 99.7% of variance in next-day closing price when using PCA-compressed technical indicators as features. The key insight: PCA denoising is what makes the prediction tractable; raw indicators with multicollinearity yield much weaker models.
+1. **The "R² = 0.997 price prediction" was a leakage artefact — and documenting
+   that is the real finding.** See [The price-prediction correction](#the-price-prediction-correction).
+   On the correct target (next-day return) the model does not beat a
+   zero-return baseline, and directional accuracy is ~51%. This is the expected
+   result: daily equity returns are near-unpredictable from technical
+   indicators alone, and any project claiming otherwise should be read with
+   suspicion.
 
 2. **Technology and Telecommunications sectors dominate by trading volume** (median 5.4M and 6.8M shares/day). Finance has the highest number of tickers but median volume of only 106K  -  most financial stocks are thinly traded.
 
@@ -115,7 +179,12 @@ Prediction              Engine
 
 4. **IPO Year nullability (5.8M missing values)** correlates with pre-1990 listings and OTC-converted stocks  -  not random noise. Filling with "Other" preserves 2.5M legitimate records that would otherwise be dropped.
 
-5. **MAPE of 13.1% is the honest accuracy.** R² near 1.0 can reflect scale effects in stock price data. MAPE of 13.1% means the model is off by ~$1.14 per dollar of price on average  -  useful for trend direction but not precise enough for high-frequency trading signals.
+5. **Why the recommendation engine is the real contribution.** The honest
+   price result is negative, so the project's value is the structural
+   similarity engine, which never forecasts price. The autoencoder compresses a
+   stock's technical-indicator profile into a 5-dim latent vector; cosine
+   similarity in that space surfaces equities that *behave* alike regardless of
+   price correlation. That is a defensible deliverable; the price model is not.
 
 ---
 
@@ -159,7 +228,7 @@ streamlit run Streamlit/app.py
 | Challenge | Improvement Path |
 |-----------|-----------------|
 | Training data ends at 2017 | Integrate `yfinance` or Alpaca API for real-time data refresh |
-| MAPE of 13.1% limits trading use | Add order book microstructure features and macroeconomic signals (yield curve, VIX) |
+| Price returns are near-unpredictable (OOS R² ≈ 0) | This is expected, not a bug. Realistic next steps are intraday microstructure features and a proper backtest with transaction costs — not chasing a higher level-R² |
 | Autoencoder trained on static dataset | Retrain on rolling window for concept drift; add contrastive learning for better latent separation |
 | No backtesting framework | Integrate Backtrader or Zipline to evaluate actual portfolio returns from recommendations |
 | Hardcoded absolute local paths in notebooks | Refactor to relative paths with a `config.py`  -  blocks reproducibility for any new user |
